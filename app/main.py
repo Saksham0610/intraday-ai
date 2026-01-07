@@ -27,7 +27,6 @@ def login_page(request: Request):
 
 @app.post("/login")
 def login(
-    request: Request,
     email: str = Form(...),
     password: str = Form(...),
     db: Session = Depends(get_db)
@@ -38,16 +37,12 @@ def login(
 
     response = RedirectResponse("/dashboard", status_code=302)
 
-    # Detect HTTPS correctly behind Render proxy
-    forwarded_proto = request.headers.get("x-forwarded-proto")
-    is_https = forwarded_proto == "https"
-
     response.set_cookie(
         key="user",
         value=email,
         httponly=True,
         samesite="lax",
-        secure=is_https,
+        secure=False,
         path="/"
     )
     return response
