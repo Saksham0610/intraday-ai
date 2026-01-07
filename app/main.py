@@ -37,7 +37,11 @@ def login(
         return RedirectResponse("/login", status_code=302)
 
     response = RedirectResponse("/dashboard", status_code=302)
-    is_https = request.url.scheme == "https"
+
+    # Detect HTTPS correctly behind Render proxy
+    forwarded_proto = request.headers.get("x-forwarded-proto")
+    is_https = forwarded_proto == "https"
+
     response.set_cookie(
         key="user",
         value=email,
