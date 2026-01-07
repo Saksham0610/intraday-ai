@@ -86,3 +86,10 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 def logout(request: Request):
     request.session.clear()
     return RedirectResponse("/login", status_code=303)
+
+@app.get("/debug-session")
+def debug_session(request: Request):
+    return {
+        "session_data": dict(request.session),
+        "cookies": request.cookies
+    }
