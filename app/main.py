@@ -20,6 +20,9 @@ def home():
 
 @app.get("/login")
 def login_page(request: Request):
+    if request.cookies.get("user"):
+        return RedirectResponse("/dashboard", status_code=302)
+
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.post("/login")
@@ -39,6 +42,9 @@ def login(
 
 @app.get("/register")
 def register_page(request: Request):
+    if request.cookies.get("user"):
+        return RedirectResponse("/dashboard", status_code=302)
+
     return templates.TemplateResponse("register.html", {"request": request})
 
 @app.post("/register")
@@ -61,3 +67,9 @@ def dashboard(
         "dashboard.html",
         {"request": request, "user": user}
     )
+
+@app.get("/logout")
+def logout():
+    response = RedirectResponse("/login", status_code=302)
+    response.delete_cookie("user")
+    return response
