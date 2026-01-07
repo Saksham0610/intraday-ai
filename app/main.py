@@ -27,7 +27,7 @@ def login_page(request: Request):
 
 @app.post("/login")
 def login(
-    response: RedirectResponse,
+    request: Request,
     email: str = Form(...),
     password: str = Form(...),
     db: Session = Depends(get_db)
@@ -37,12 +37,13 @@ def login(
         return RedirectResponse("/login", status_code=302)
 
     response = RedirectResponse("/dashboard", status_code=302)
+    is_https = request.url.scheme == "https"
     response.set_cookie(
         key="user",
         value=email,
         httponly=True,
         samesite="lax",
-        secure=True,
+        secure=is_https,
         path="/"
     )
     return response
