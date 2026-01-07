@@ -37,7 +37,14 @@ def login(
         return RedirectResponse("/login", status_code=302)
 
     response = RedirectResponse("/dashboard", status_code=302)
-    response.set_cookie(key="user", value=email)
+    response.set_cookie(
+        key="user",
+        value=email,
+        httponly=True,
+        samesite="lax",
+        secure=True,
+        path="/"
+    )
     return response
 
 @app.get("/register")
@@ -71,5 +78,8 @@ def dashboard(
 @app.get("/logout")
 def logout():
     response = RedirectResponse("/login", status_code=302)
-    response.delete_cookie("user")
+    response.delete_cookie(
+        key="user",
+        path="/"
+    )
     return response
