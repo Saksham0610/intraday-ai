@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Request, Form, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -15,7 +16,9 @@ app = FastAPI()
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key="change-this-secret-key"
+    secret_key=os.environ.get("SESSION_SECRET"),
+    same_site="lax",
+    https_only=False
 )
 
 templates = Jinja2Templates(directory="app/templates")
@@ -41,10 +44,10 @@ def login(
 ):
     user = db.query(User).filter(User.email == email).first()
     if not user or not verify_password(password, user.password):
-        return RedirectResponse("/login", status_code=302)
+        return RedirectResponse("/login", status_code=303)
 
     request.session["user"] = user.email
-    return RedirectResponse("/dashboard", status_code=302)
+    return RedirectResponse("/dashboard", status_code=303)
 
 @app.get("/register")
 def register_page(request: Request):
@@ -65,17 +68,14 @@ def register(
     return RedirectResponse("/login", status_code=302)
 
 @app.get("/dashboard")
-def dashboard(
-    request: Request,
-    db: Session = Depends(get_db)
-):
+def dashboard(request: Request, db: Session = Depends(get_db)):
     email = request.session.get("user")
     if not email:
-        return RedirectResponse("/login", status_code=302)
+        return RedirectResponse("/login", status_code=303)
 
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        return RedirectResponse("/login", status_code=302)
+        return RedirectResponse("/login", status_code=303)
 
     return templates.TemplateResponse(
         "dashboard.html",
@@ -85,4 +85,4 @@ def dashboard(
 @app.get("/logout")
 def logout(request: Request):
     request.session.clear()
-    return RedirectResponse("/login", status_code=302)
+    return RedirectResponse("/login", status_code=303)
