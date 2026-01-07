@@ -35,17 +35,7 @@ def login(
     if not user or not verify_password(password, user.password):
         return RedirectResponse("/login", status_code=302)
 
-    response = RedirectResponse("/dashboard", status_code=302)
-
-    response.set_cookie(
-        key="user",
-        value=email,
-        httponly=True,
-        samesite="lax",
-        secure=False,
-        path="/"
-    )
-    return response
+    return RedirectResponse(f"/dashboard?user={email}", status_code=302)
 
 @app.get("/register")
 def register_page(request: Request):
@@ -68,8 +58,16 @@ def register(
 @app.get("/dashboard")
 def dashboard(
     request: Request,
-    user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
+    email = request.query_params.get("user")
+    if not email:
+        return RedirectResponse("/login", status_code=302)
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        return RedirectResponse("/login", status_code=302)
+
     return templates.TemplateResponse(
         "dashboard.html",
         {"request": request, "user": user}
@@ -78,8 +76,4 @@ def dashboard(
 @app.get("/logout")
 def logout():
     response = RedirectResponse("/login", status_code=302)
-    response.delete_cookie(
-        key="user",
-        path="/"
-    )
     return response
